@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Environment files (exclude templates)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+backend/.env
+frontend/.env
+
+# Build outputs
+frontend/dist/
+frontend/dist-ssr/
+backend/build/
+
+# Editor / System files
+.vscode/
+.idea/
+.cursor/
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Backend uploads
+backend/public/temp/*
+!backend/public/temp/.gitkeep
