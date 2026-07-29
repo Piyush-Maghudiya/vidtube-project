@@ -2,9 +2,9 @@ import {v2 as cloudinary} from "cloudinary"
 import fs from "fs"
 
 cloudinary.config({
-    cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
-    api_key:process.env.CLOUDINARY_API_KEY,
-    api_secret:process.env.CLOUDINARY_API_SECRETE ,
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME?.trim(),
+    api_key: process.env.CLOUDINARY_API_KEY?.trim(),
+    api_secret: process.env.CLOUDINARY_API_SECRETE?.trim(),
 })
 
    const uploadoncloudinary = async (localfilepath) =>{
@@ -24,11 +24,14 @@ cloudinary.config({
           public_id:response.public_id
         }
 
-      }catch(error){
-        // remove file from local temprory storage
-        fs.unlinkSync(localfilepath);
-        return null
-      }
+       }catch(error){
+         console.error("Cloudinary upload error details:", error);
+         // remove file from local temprory storage
+         if (fs.existsSync(localfilepath)) {
+           fs.unlinkSync(localfilepath);
+         }
+         return null
+       }
    }
 
 

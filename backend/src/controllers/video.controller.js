@@ -146,10 +146,11 @@ const publishvideo  = asyncHandler(async (req,res) =>{
     if(!uploadvideo){
     throw new ApiError(500,"somthing went wrong while uploading video in database")
     }
+    const populatedVideo = await Video.findById(uploadvideo._id).populate("owner", "username fullname avatar")
     return res
      .status(200)
      .json(
-        new ApiResponse(200,uploadvideo,"video published successfully")
+        new ApiResponse(200,populatedVideo,"video published successfully")
      )
    
 })
@@ -162,6 +163,8 @@ const getvideoByid = asyncHandler(async (req,res) =>{
     if(!video){
         throw new ApiError(400,"video not found")
     }
+    const userId = req.user?._id ? new mongoose.Types.ObjectId(req.user._id) : null;
+
    const videoaggrigate  = await  Video.aggregate([
        {
         $match:{
@@ -196,13 +199,13 @@ const getvideoByid = asyncHandler(async (req,res) =>{
             subscribercount:{
                  $size:"$subscribers"
             },
-            issubscribed :{
+            issubscribed: userId ? {
               $cond :{
-            if:{$in:[ req.user?._id ,"$subscribers.subscriber"]},
-            then:true,
-            else:false
-           }
-            }
+                if:{$in:[ userId ,"$subscribers.subscriber"]},
+                then:true,
+                else:false
+              }
+            } : false
            },
         },
         {
@@ -221,15 +224,15 @@ const getvideoByid = asyncHandler(async (req,res) =>{
         likescount:{
             $size:"$likes"
         },
-         isliked: {
-             $cond:{
-            if:{
-                $in :[req.user?._id,"$likes.likeBy"]
-            },
-            then:true,
-            else:false,
-        }
-        },
+         isliked: userId ? {
+           $cond:{
+             if:{
+                 $in :[userId,"$likes.likeBy"]
+             },
+             then:true,
+             else:false,
+           }
+         } : false,
         owner:{
             $first:"$owner"
         }
@@ -237,16 +240,16 @@ const getvideoByid = asyncHandler(async (req,res) =>{
        },
        {
         $project:{
-        videoFile:1,
+          videoFile:1,
           title:1,
           description:1,
           duration:1,
-           isPublished:1,
-           owner:1,
-           views:1,
+          isPublished:1,
+          owner:1,
+          views:1,
           isliked:1,
           likescount:1
-       }
+        }
       }
 
    ])

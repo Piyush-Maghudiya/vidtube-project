@@ -128,4 +128,11 @@ public/temp/*
 .cursor/
 .vscode/
 .env
-.env.*
+.env.*
+
+# Temporary test/reset scripts
+src/testDb.js
+src/clearDb.js
+
+# Dependency lock files
+package-lock.json

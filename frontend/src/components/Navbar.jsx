@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Search, Menu, Play } from 'lucide-react'
+import { Search, Menu, Play, Sun, Moon } from 'lucide-react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import UserMenu from './UserMenu'
@@ -11,6 +11,22 @@ export default function Navbar({ onMenuClick }) {
   const [search, setSearch] = useState('')
   const navigate = useNavigate()
   const { user, isAuthenticated } = useAuthStore()
+  const [isLightMode, setIsLightMode] = useState(() => {
+    return document.documentElement.classList.contains('light')
+  })
+
+  const toggleTheme = () => {
+    const root = document.documentElement
+    if (root.classList.contains('light')) {
+      root.classList.remove('light')
+      localStorage.setItem('theme', 'dark')
+      setIsLightMode(false)
+    } else {
+      root.classList.add('light')
+      localStorage.setItem('theme', 'light')
+      setIsLightMode(true)
+    }
+  }
 
   const handleSearch = (e) => {
     e.preventDefault()
@@ -49,6 +65,14 @@ export default function Navbar({ onMenuClick }) {
       </form>
 
       <div className="ml-auto flex items-center gap-2 sm:gap-3">
+        <button
+          onClick={toggleTheme}
+          type="button"
+          className="theme-toggle-btn rounded-lg p-2 text-text-secondary hover:bg-accent-purple/10 hover:text-white transition-colors"
+          aria-label="Toggle Night/Day View"
+        >
+          {isLightMode ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+        </button>
         <CreateMenu />
         {isAuthenticated && user ? (
           <UserMenu />

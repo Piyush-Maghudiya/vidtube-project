@@ -93,7 +93,7 @@ export default function UploadVideoDialog({ open, onOpenChange }) {
       resetForm()
       onOpenChange(false)
     } else {
-      toast.error('Failed to upload video')
+      toast.error(result.error || 'Failed to upload video')
     }
   }
 

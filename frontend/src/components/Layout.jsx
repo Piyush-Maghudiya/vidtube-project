@@ -1,16 +1,26 @@
 import { useState } from 'react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import { cn } from '@/lib/utils'
+import useAuthStore from '@/store/authStore'
 
 const AUTH_ROUTES = ['/login', '/signup']
 
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const location = useLocation()
+  const { isAuthenticated } = useAuthStore()
   const isAuthPage = AUTH_ROUTES.includes(location.pathname)
+
+  if (!isAuthenticated && !isAuthPage) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (isAuthenticated && isAuthPage) {
+    return <Navigate to="/" replace />
+  }
 
   if (isAuthPage) {
     return (

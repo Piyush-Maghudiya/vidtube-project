@@ -39,7 +39,8 @@ export default function Watch() {
       return
     }
     await toggleLike(videoId)
-    toast.success(currentVideo?.isLiked ? 'Like removed' : 'Video liked!')
+    const updatedVideo = useVideoStore.getState().currentVideo
+    toast.success(updatedVideo?.isLiked ? 'Video liked!' : 'Like removed')
   }
 
   const handleSubscribe = async () => {
@@ -51,7 +52,8 @@ export default function Watch() {
     if (!ownerId) return
     const wasSubscribed = currentVideo?.owner?.isSubscribed
     await toggleSubscribe(ownerId, { isSubscribed: wasSubscribed })
-    toast.success(wasSubscribed ? 'Unsubscribed' : 'Subscribed!')
+    const updatedVideo = useVideoStore.getState().currentVideo
+    toast.success(updatedVideo?.owner?.isSubscribed ? 'Subscribed!' : 'Unsubscribed')
   }
 
   const handleSaveToPlaylist = () => {

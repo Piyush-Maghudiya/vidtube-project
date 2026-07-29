@@ -47,6 +47,7 @@ export function normalizeUser(user) {
   return {
     ...user,
     fullName: user.fullName || user.fullname || '',
+    isSubscribed: user.isSubscribed ?? user.issubscribed ?? false,
     avatar: typeof user.avatar === 'object' ? user.avatar?.url : user.avatar,
     coverImage: typeof user.coverImage === 'object' ? user.coverImage?.url : user.coverImage,
   }

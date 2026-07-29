@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { User, Settings as SettingsIcon, ShieldAlert, Image, Camera } from 'lucide-react'
+import { User, Settings as SettingsIcon, ShieldAlert, Image, Camera, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,6 +21,9 @@ export default function Settings() {
   const [newpassword, setNewpassword] = useState('')
   const [confpassword, setConfpassword] = useState('')
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+  const [showOldPassword, setShowOldPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfPassword, setShowConfPassword] = useState(false)
 
   // Picture fields
   const [avatarFile, setAvatarFile] = useState(null)
@@ -197,37 +200,67 @@ export default function Settings() {
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="oldpassword">Current Password</Label>
-                <Input
-                  id="oldpassword"
-                  type="password"
-                  value={oldpassword}
-                  onChange={(e) => setOldpassword(e.target.value)}
-                  placeholder="Enter current password"
-                  required
-                />
+                <div className="relative">
+                  <Input
+                    id="oldpassword"
+                    type={showOldPassword ? 'text' : 'password'}
+                    value={oldpassword}
+                    onChange={(e) => setOldpassword(e.target.value)}
+                    placeholder="Enter current password"
+                    required
+                    className="pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowOldPassword(!showOldPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+                  >
+                    {showOldPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  </button>
+                </div>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="newpassword">New Password</Label>
-                  <Input
-                    id="newpassword"
-                    type="password"
-                    value={newpassword}
-                    onChange={(e) => setNewpassword(e.target.value)}
-                    placeholder="Enter new password"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="newpassword"
+                      type={showNewPassword ? 'text' : 'password'}
+                      value={newpassword}
+                      onChange={(e) => setNewpassword(e.target.value)}
+                      placeholder="Enter new password"
+                      required
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+                    >
+                      {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confpassword">Confirm New Password</Label>
-                  <Input
-                    id="confpassword"
-                    type="password"
-                    value={confpassword}
-                    onChange={(e) => setConfpassword(e.target.value)}
-                    placeholder="Confirm new password"
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="confpassword"
+                      type={showConfPassword ? 'text' : 'password'}
+                      value={confpassword}
+                      onChange={(e) => setConfpassword(e.target.value)}
+                      placeholder="Confirm new password"
+                      required
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfPassword(!showConfPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+                    >
+                      {showConfPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="pt-2">

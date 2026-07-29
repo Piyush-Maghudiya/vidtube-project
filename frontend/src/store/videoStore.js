@@ -136,7 +136,7 @@ const useVideoStore = create((set, get) => ({
   uploadVideo: async (formData, onProgress) => {
     try {
       const { data } = await uploadVideoApi(formData, onProgress)
-      const newVideo = data.data
+      const newVideo = normalizeVideo(data.data)
       set((state) => ({ videos: [newVideo, ...state.videos] }))
       return { success: true, video: newVideo }
     } catch (err) {

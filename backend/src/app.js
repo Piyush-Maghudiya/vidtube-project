@@ -1,9 +1,12 @@
 import cookieParser from "cookie-parser"
 import express from "express"
 import cors from "cors"
+import helmet from "helmet"
+import { rateLimit } from "express-rate-limit"
 
 const app = express()
-app.use(express.json());
+
+// 1. Enable CORS as the first middleware to process preflight OPTIONS requests
 app.use(cors({
     origin: function (origin, callback) {
         console.log("Incoming CORS request from origin:", origin);
@@ -32,10 +35,31 @@ app.use(cors({
     credentials: true
 }))
 
+// 2. Set secure HTTP headers (configured to support cross-origin resource requests)
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}))
+
+// 3. Define rate limit rules (100 requests per 15 minutes per IP)
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, 
+    max: 100, 
+    message: {
+        success: false,
+        message: "Too many requests from this IP, please try again later."
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+})
+
+// Apply rate limiter to API endpoints
+app.use("/api", limiter)
+
+// 4. Body parsing and standard middlewares
 app.use(express.json({limit:"16kb"}))
- app.use(express.urlencoded({extended:true,limit:"16kb"}))
- app.use(express.static("public"))
- app.use(cookieParser()) 
+app.use(express.urlencoded({extended:true,limit:"16kb"}))
+app.use(express.static("public"))
+app.use(cookieParser()) 
  
 // import routes
 import userRouter from "./routes/user.routes.js" 
@@ -58,6 +82,10 @@ app.use("/api/v1/subcriptions",subscriptionRouter)
 app.use("/api/v1/tweets",tweetRouter)
 app.use("/api/v1/dashboard",dashboardRouter)
 app.use("/api/v1/healthcheck",healthcheckRouter)
+
+// Global catch-all error handling middleware
+import errorHandler from "./middleware/error.middleware.js"
+app.use(errorHandler)
 
 export default app
 

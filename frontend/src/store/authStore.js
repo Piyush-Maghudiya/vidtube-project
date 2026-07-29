@@ -5,18 +5,19 @@ import { normalizeUser } from '../lib/utils'
 const useAuthStore = create((set, get) => ({
   user: null,
   isAuthenticated: false,
-  isLoading: true,
+  isLoading: false,
+  isCheckingAuth: true,
   error: null,
 
   setUser: (user) => set({ user, isAuthenticated: !!user, isLoading: false }),
 
   fetchCurrentUser: async () => {
-    set({ isLoading: true, error: null })
+    set({ isCheckingAuth: true, error: null })
     try {
       const { data } = await getCurrentUser()
-      set({ user: normalizeUser(data.data), isAuthenticated: true, isLoading: false })
+      set({ user: normalizeUser(data.data), isAuthenticated: true, isCheckingAuth: false })
     } catch {
-      set({ user: null, isAuthenticated: false, isLoading: false })
+      set({ user: null, isAuthenticated: false, isCheckingAuth: false })
     }
   },
 
@@ -36,7 +37,7 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const { data } = await registerUser(formData)
-      set({ user: normalizeUser(data.data), isAuthenticated: true, isLoading: false })
+      set({ user: normalizeUser(data.data.user || data.data), isAuthenticated: true, isLoading: false })
       return { success: true }
     } catch (err) {
       set({ error: err.message, isLoading: false })
