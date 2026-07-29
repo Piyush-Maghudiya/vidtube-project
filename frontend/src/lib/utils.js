@@ -83,6 +83,8 @@ export function normalizeComment(comment) {
   if (!comment) return comment
   return {
     ...comment,
+    likesCount: comment.likesCount ?? comment.likescount ?? 0,
+    isLiked: comment.isLiked ?? comment.isliked ?? false,
     owner: comment.owner ? {
       ...comment.owner,
       fullName: comment.owner.fullName || comment.owner.fullname || '',
