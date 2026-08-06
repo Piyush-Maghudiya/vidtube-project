@@ -12,7 +12,7 @@ import { ListMusic, ThumbsUp, Trash2, Send } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { getUserTweets, createTweet, deleteTweet, toggleTweetLike } from '@/services/api'
+import { getUserTweets, createTweet, deleteTweet, toggleTweetLike, getSubscribedChannels } from '@/services/api'
 import { toast } from 'sonner'
 
 export default function Channel() {
@@ -106,9 +106,7 @@ export default function Channel() {
       )}
 
       {activeTab === 'following' && (
-        <div className="flex min-h-[200px] items-center justify-center rounded-xl border border-border bg-card">
-          <p className="text-text-secondary">Following list coming soon</p>
-        </div>
+        <ChannelFollowing channelId={channel._id} />
       )}
 
       {activeTab === 'tweets' && (
@@ -290,6 +288,71 @@ function ChannelTweets({ channelId, isOwnChannel }) {
             )
           })}
         </div>
+      )}
+    </div>
+  )
+}
+
+function ChannelFollowing({ channelId }) {
+  const [following, setFollowing] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchFollowing = async () => {
+      try {
+        setIsLoading(true)
+        const { data } = await getSubscribedChannels(channelId)
+        setFollowing(data.data || [])
+      } catch (err) {
+        console.error('Failed to fetch following channels:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    if (channelId) fetchFollowing()
+  }, [channelId])
+
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
+          <div key={i} className="h-20 w-full rounded-xl bg-card animate-pulse border border-border" />
+        ))}
+      </div>
+    )
+  }
+
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+      {following.length === 0 ? (
+        <p className="col-span-full py-12 text-center text-text-secondary text-sm">
+          Not following anyone yet.
+        </p>
+      ) : (
+        following.map((sub, i) => {
+          const ch = sub.subscribedto || {}
+          const avatarUrl = typeof ch.avatar === 'object' ? ch.avatar?.url : ch.avatar
+
+          return (
+            <div
+              key={ch._id || i}
+              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4 hover:border-accent-purple/50 transition-colors"
+            >
+              <Avatar className="h-10 w-10 shrink-0 border border-border">
+                <AvatarImage src={avatarUrl} />
+                <AvatarFallback>{ch.fullname?.[0] || ch.username?.[0]}</AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <h3 className="font-semibold text-white truncate text-sm">
+                  {ch.fullname || ch.username}
+                </h3>
+                <p className="text-xs text-text-secondary truncate">
+                  @{ch.username}
+                </p>
+              </div>
+            </div>
+          )
+        })
       )}
     </div>
   )
