@@ -97,7 +97,8 @@ const registerUser = asyncHandler(async (req,res) =>{
 
         const options = {
           httpOnly  :true,
-          secure: process.env.NODE_ENV === 'production'
+          secure: true,
+          sameSite: "none"
         }
 
         return res.status(201)
@@ -143,8 +144,8 @@ const registerUser = asyncHandler(async (req,res) =>{
 
       const options = {
         httpOnly  :true,
-        // secure : true
-        secure: process.env.NODE_ENV === 'production'
+        secure: true,
+        sameSite: "none"
       }
 
       return res
@@ -177,8 +178,8 @@ const registerUser = asyncHandler(async (req,res) =>{
     )
     const options = {
       httpOnly:true,
-      // secure:true
-      secure: process.env.NODE_ENV === 'production'
+      secure: true,
+      sameSite: "none"
     }
     return res
     .status(200)
@@ -208,8 +209,8 @@ const registerUser = asyncHandler(async (req,res) =>{
 
       const options = {
         httpOnly:true,
-        // secure:true
-       secure: process.env.NODE_ENV === 'production'
+        secure: true,
+        sameSite: "none"
       }
 
       res
