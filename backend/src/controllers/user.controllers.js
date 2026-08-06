@@ -394,6 +394,14 @@ const registerUser = asyncHandler(async (req,res) =>{
       }
      },
      {
+      $lookup:{
+        from:"videos",
+        localField:"_id",
+        foreignField:"owner",
+        as:"videos"
+      }
+     },
+     {
       $addFields :{
         subscribercount : {
           $size :"$subscribers"
@@ -420,7 +428,8 @@ const registerUser = asyncHandler(async (req,res) =>{
         subscribercount :1,
         chhanelsubscribedtocount:1,
         issubcribed:1,
-        username:1
+        username:1,
+        videos:1
       }
      }
     ])
