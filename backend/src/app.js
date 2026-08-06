@@ -6,6 +6,9 @@ import { rateLimit } from "express-rate-limit"
 
 const app = express()
 
+// Trust proxy (Render reverse proxy) to retrieve correct client IP for rate limiting
+app.set("trust proxy", 1)
+
 // 1. Enable CORS as the first middleware to process preflight OPTIONS requests
 app.use(cors({
     origin: function (origin, callback) {
