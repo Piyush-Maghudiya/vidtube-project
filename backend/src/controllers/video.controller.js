@@ -12,6 +12,7 @@ import mongoose,{isValidObjectId} from "mongoose";
 // delete video 
 
 const getallvideo = asyncHandler(async (req,res) => {
+    console.log("getallvideo req.query:", req.query);
     const {page=1,limit=10,query,sortBy, sortType, userId}= req.query;
     
     const pipeline = [];

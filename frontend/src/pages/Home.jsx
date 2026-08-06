@@ -5,6 +5,7 @@ import VideoCard from '@/components/VideoCard'
 import VideoCardSkeleton from '@/components/VideoCardSkeleton'
 import useVideoStore from '@/store/videoStore'
 import useInfiniteScroll from '@/hooks/useInfiniteScroll'
+import { toast } from 'sonner'
 
 const CATEGORIES = ['All', 'Education', 'Vlogs', 'Coding', 'Music', 'Gaming']
 
@@ -13,12 +14,18 @@ export default function Home() {
   const query = searchParams.get('q')?.toLowerCase()
   const [selectedCategory, setSelectedCategory] = useState('All')
 
-  const { videos, isLoading, isLoadingMore, hasMore, fetchVideos, loadMoreVideos } =
+  const { videos, isLoading, isLoadingMore, hasMore, fetchVideos, loadMoreVideos, error } =
     useVideoStore()
 
   useEffect(() => {
     fetchVideos(true)
   }, [fetchVideos])
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error)
+    }
+  }, [error])
 
   const lastRef = useInfiniteScroll({
     onLoadMore: loadMoreVideos,
