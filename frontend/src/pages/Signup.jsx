@@ -37,6 +37,18 @@ export default function Signup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+
+    // Password validation: minimum 6 characters and at least one symbol
+    if (form.password.length < 6) {
+      toast.error('Password must be at least 6 characters long')
+      return
+    }
+    const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\W]/
+    if (!symbolRegex.test(form.password)) {
+      toast.error('Password must contain at least one symbol')
+      return
+    }
+
     const formData = new FormData()
     formData.append('fullname', form.fullName)
     formData.append('username', form.username)

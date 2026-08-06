@@ -72,6 +72,17 @@ export default function Settings() {
       return
     }
 
+    // Password validation: minimum 6 characters and at least one symbol
+    if (newpassword.length < 6) {
+      toast.error('New password must be at least 6 characters long')
+      return
+    }
+    const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\W]/
+    if (!symbolRegex.test(newpassword)) {
+      toast.error('New password must contain at least one symbol')
+      return
+    }
+
     setIsUpdatingPassword(true)
     try {
       await changePassword({ oldpassword, newpassword, confpassword })

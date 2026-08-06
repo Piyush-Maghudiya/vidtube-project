@@ -39,6 +39,15 @@ const registerUser = asyncHandler(async (req,res) =>{
           throw new ApiError(400, "All fields are required (fullname, email, password, username)")
         }
 
+        // Password validation: minimum 6 characters and at least one symbol
+        if (password.length < 6) {
+          throw new ApiError(400, "Password must be at least 6 characters long")
+        }
+        const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\W]/;
+        if (!symbolRegex.test(password)) {
+          throw new ApiError(400, "Password must contain at least one symbol")
+        }
+
         const exituser =  await User.findOne({
           $or: [{ username},{email}]
         })
@@ -228,6 +237,15 @@ const registerUser = asyncHandler(async (req,res) =>{
      }
       if(!(confpassword === newpassword)){
         throw new ApiError(400,"new and confirm password must be same")
+      }
+
+      // Password validation: minimum 6 characters and at least one symbol
+      if (newpassword.length < 6) {
+        throw new ApiError(400, "New password must be at least 6 characters long")
+      }
+      const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\W]/;
+      if (!symbolRegex.test(newpassword)) {
+        throw new ApiError(400, "New password must contain at least one symbol")
       }
      user.password =newpassword 
      await user.save({validateBeforeSave:false})
