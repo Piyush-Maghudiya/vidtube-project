@@ -24,7 +24,11 @@ app.use(cors({
             allowedOrigins.push(envOrigin);
         }
         console.log("Allowed origins:", allowedOrigins);
-        if (allowedOrigins.indexOf(origin) !== -1) {
+        if (
+            envOrigin === '*' ||
+            origin.endsWith('.vercel.app') ||
+            allowedOrigins.indexOf(origin) !== -1
+        ) {
             console.log("Origin allowed");
             callback(null, true);
         } else {
