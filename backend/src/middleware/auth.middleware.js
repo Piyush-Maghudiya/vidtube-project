@@ -38,5 +38,15 @@ const verifyjwtOptional = async (req, res, next) => {
   next();
 }
 
-export { verifyjwt, verifyjwtOptional };
+const verifyAdmin = (req, res, next) => {
+  if (!req.user) {
+    throw new ApiError(401, "Unauthorized request");
+  }
+  if (req.user.role !== "admin" && req.user.email !== "maghudiyapiyush8206@gmail.com") {
+    throw new ApiError(403, "Access denied. Admin access only.");
+  }
+  next();
+};
+
+export { verifyjwt, verifyjwtOptional, verifyAdmin };
 export default verifyjwt;

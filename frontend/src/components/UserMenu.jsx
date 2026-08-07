@@ -8,6 +8,7 @@ import {
   Settings,
   ChevronDown,
   BarChart2,
+  ShieldCheck,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -101,6 +102,15 @@ export default function UserMenu() {
                 Creator Studio
               </Link>
             </DropdownMenuItem>
+
+            {(user.role === 'admin' || user.email === 'maghudiyapiyush8206@gmail.com') && (
+              <DropdownMenuItem asChild>
+                <Link to="/admin" className="cursor-pointer text-accent-purple font-semibold">
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin Dashboard
+                </Link>
+              </DropdownMenuItem>
+            )}
 
             <DropdownMenuItem asChild>
               <Link to="/settings" className="cursor-pointer">

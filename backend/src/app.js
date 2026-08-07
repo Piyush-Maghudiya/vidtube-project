@@ -78,6 +78,7 @@ import subscriptionRouter from "./routes/subscription.routes.js"
 import tweetRouter from "./routes/tweet.routes.js"
 import dashboardRouter from "./routes/dashboard.routes.js"
 import healthcheckRouter from "./routes/healthcheck.routes.js"
+import adminRouter from "./routes/admin.routes.js"
 
 // route decalre
 app.use("/api/v1/users",userRouter)
@@ -89,6 +90,7 @@ app.use("/api/v1/subcriptions",subscriptionRouter)
 app.use("/api/v1/tweets",tweetRouter)
 app.use("/api/v1/dashboard",dashboardRouter)
 app.use("/api/v1/healthcheck",healthcheckRouter)
+app.use("/api/v1/admin", adminRouter)
 
 // Global catch-all error handling middleware
 import errorHandler from "./middleware/error.middleware.js"

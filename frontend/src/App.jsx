@@ -12,6 +12,7 @@ const Watch = lazy(() => import('./pages/Watch'))
 const Login = lazy(() => import('./pages/Login'))
 const Signup = lazy(() => import('./pages/Signup'))
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const Collections = lazy(() => import('./pages/Collections'))
 const LikedVideos = lazy(() => import('./pages/LikedVideos'))
 const WatchHistory = lazy(() => import('./pages/WatchHistory'))
@@ -69,6 +70,7 @@ export default function App() {
               <Route path="login" element={<Login />} />
               <Route path="signup" element={<Signup />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="admin" element={<AdminDashboard />} />
             </Route>
           </Routes>
         </Suspense>

@@ -31,3 +31,5 @@ backend/build/
 # Backend uploads
 backend/public/temp/*
 !backend/public/temp/.gitkeep
+
+.vercel

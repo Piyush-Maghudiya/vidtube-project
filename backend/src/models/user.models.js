@@ -55,6 +55,14 @@ const userSchema = new mongoose.Schema({
     otpExpiry: {
         type: Date
     },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
+    },
+    lastLogin: {
+        type: Date
+    }
 },{timestamps:true})
 
 userSchema.pre("save",async function(){
@@ -72,6 +80,7 @@ userSchema.methods.generateAccesstoken = function (){
            username : this.username,
            email: this.email,
            fullname:this.fullname,
+           role: this.role,
         },
         process.env.ACCESS_TOKEN_SECRET,
         {

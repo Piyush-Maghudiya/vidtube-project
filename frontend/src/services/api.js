@@ -35,6 +35,10 @@ export const resendOtp = (data) => api.post('/api/v1/users/resend-otp', data)
 export const forgotPasswordRequest = (data) => api.post('/api/v1/users/forgot-password-request', data)
 export const forgotPasswordReset = (data) => api.post('/api/v1/users/forgot-password-reset', data)
 
+export const getAdminStats = () => api.get('/api/v1/admin/stats')
+export const getAdminUsers = () => api.get('/api/v1/admin/users')
+export const getAdminVideos = () => api.get('/api/v1/admin/videos')
+
 // Videos  (backend mounts at /api/v1/video — singular)
 export const getVideos = (params) => api.get('/api/v1/video/', { params })
 

@@ -32,3 +32,6 @@ dist-ssr
 # Dependency lock files
 package-lock.json
 
+
+
+.vercel
