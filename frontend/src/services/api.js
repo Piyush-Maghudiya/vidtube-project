@@ -38,6 +38,7 @@ export const forgotPasswordReset = (data) => api.post('/api/v1/users/forgot-pass
 export const getAdminStats = () => api.get('/api/v1/admin/stats')
 export const getAdminUsers = () => api.get('/api/v1/admin/users')
 export const getAdminVideos = () => api.get('/api/v1/admin/videos')
+export const deleteAdminUser = (userId) => api.delete(`/api/v1/admin/users/${userId}`)
 
 // Videos  (backend mounts at /api/v1/video — singular)
 export const getVideos = (params) => api.get('/api/v1/video/', { params })

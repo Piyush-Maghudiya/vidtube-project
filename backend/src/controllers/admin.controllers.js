@@ -109,4 +109,28 @@ const getAdminVideos = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, videos, "Admin videos catalog fetched successfully"))
 })
 
-export { getAdminStats, getAdminUsers, getAdminVideos }
+const deleteAdminUser = asyncHandler(async (req, res) => {
+    const { userId } = req.params
+
+    // Prevent deleting oneself
+    if (req.user._id.toString() === userId.toString()) {
+        throw new ApiError(400, "You cannot delete your own admin account")
+    }
+
+    const user = await User.findById(userId)
+    if (!user) {
+        throw new ApiError(404, "User not found")
+    }
+
+    // Clean up their uploaded videos
+    await Video.deleteMany({ owner: userId })
+
+    // Delete user
+    await User.findByIdAndDelete(userId)
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "User and all their uploaded videos deleted successfully"))
+})
+
+export { getAdminStats, getAdminUsers, getAdminVideos, deleteAdminUser }

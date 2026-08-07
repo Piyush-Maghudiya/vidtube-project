@@ -11,8 +11,9 @@ import {
   Layers,
   Search,
   ExternalLink,
+  Trash2,
 } from 'lucide-react'
-import { getAdminStats, getAdminUsers, getAdminVideos } from '../services/api'
+import { getAdminStats, getAdminUsers, getAdminVideos, deleteAdminUser } from '../services/api'
 import useAuthStore from '@/store/authStore'
 import { toast } from 'sonner'
 
@@ -57,6 +58,22 @@ export default function AdminDashboard() {
 
     fetchData()
   }, [isAdmin, navigate])
+
+  const handleDeleteUser = async (userId, fullname) => {
+    if (window.confirm(`Are you sure you want to permanently delete the user "${fullname}" and all their uploaded videos? This action cannot be undone.`)) {
+      try {
+        await deleteAdminUser(userId)
+        toast.success(`User "${fullname}" deleted successfully`)
+        setUsersList(prev => prev.filter(u => u._id !== userId))
+        setStats(prev => ({
+          ...prev,
+          totalUsers: Math.max(0, prev.totalUsers - 1)
+        }))
+      } catch (err) {
+        toast.error(err.message || 'Failed to delete user')
+      }
+    }
+  }
 
   if (!isAdmin) {
     return (
@@ -242,6 +259,7 @@ export default function AdminDashboard() {
                     <th className="px-6 py-4">Registered Date</th>
                     <th className="px-6 py-4">Last Login Time</th>
                     <th className="px-6 py-4 text-center">Videos Uploaded</th>
+                    <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">
@@ -282,11 +300,22 @@ export default function AdminDashboard() {
                         <td className="px-6 py-4 text-center font-extrabold text-accent-blue text-sm">
                           {u.videoCount}
                         </td>
+                        <td className="px-6 py-4 text-right">
+                          {u.email !== user.email && u.role !== 'admin' && (
+                            <button
+                              onClick={() => handleDeleteUser(u._id, u.fullname)}
+                              className="text-red-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+                              title="Delete user account"
+                            >
+                              <Trash2 className="h-4.5 w-4.5" />
+                            </button>
+                          )}
+                        </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="5" className="text-center py-8 text-text-secondary">
+                      <td colSpan="6" className="text-center py-8 text-text-secondary">
                         No users match the search terms
                       </td>
                     </tr>
