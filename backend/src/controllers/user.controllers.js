@@ -6,6 +6,7 @@ import {uploadoncloudinary,deleteFromCloudinary} from "../utils/cloudinary.js"
 import ApiResponse from "../utils/ApiResponse.js"
 import jwt from "jsonwebtoken";
 import { response } from "express"
+import { sendBrevoEmail } from "../utils/brevoEmail.js"
 
 const generateAccesstokenAndRefreshtoken = async (userId) => {
   try {
@@ -139,30 +140,42 @@ const registerUser = asyncHandler(async (req,res) =>{
       if(!passwordvalid){
          throw new ApiError(401,"Password is invalid,enter corret password")
       }
-      const {accessToken,refreshToken} =  await generateAccesstokenAndRefreshtoken(user._id)
-      const logginuser = await User.findById(user._id).select("-password -refreshToken")
 
-      const options = {
-        httpOnly  :true,
-        secure: true,
-        sameSite: "none"
-      }
+      // Generate OTP for login
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      user.otp = otp;
+      user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
+      await user.save({ validateBeforeSave: false });
+
+      const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fcfcfc;">
+            <h2 style="color: #a855f7; text-align: center; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">VidTube Platform</h2>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">Hello,</p>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">Please use the following OTP to log in to your account:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #6b21a8; background-color: #faf5ff; padding: 12px 28px; border-radius: 8px; border: 1px solid #e9d5ff; display: inline-block;">
+                    ${otp}
+                </span>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; text-align: center;">This code is valid for 10 minutes. Please do not share this OTP with anyone.</p>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin-top: 30px;" />
+            <p style="font-size: 12px; color: #9ca3af; text-align: center;">VidTube Platform &copy; 2026</p>
+        </div>
+      `;
+      sendBrevoEmail(user.email, "VidTube - Login OTP Verification", htmlContent);
 
       return res
       .status(200)
-      .cookie("accessToken", accessToken, options)
-        .cookie("refreshToken", refreshToken, options)
-        .json(
-          new ApiResponse(
-            200,
-            {
-              user: logginuser,
-              accessToken,
-              refreshToken
-            },
-            "user login successfully"
-          )
+      .json(
+        new ApiResponse(
+          200,
+          {
+            otpRequired: true,
+            email: user.email
+          },
+          "A 6-digit login verification OTP has been sent to your email."
         )
+      )
   })
   
   const logoutUser = asyncHandler( async (req,res) =>{
@@ -502,4 +515,179 @@ const registerUser = asyncHandler(async (req,res) =>{
       )
     })
 
-export {registerUser,loginUser,logoutUser,refreshAccessToken,updateAccount,updateAvatar,updatecoverImage,getuserchhanelprofile,getwatchhistory,changepassword,getcurrentuser}
+const verifyOtp = asyncHandler(async (req, res) => {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+        throw new ApiError(400, "Email and OTP are required");
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.otp !== otp) {
+        throw new ApiError(400, "Invalid OTP code");
+    }
+
+    if (new Date() > user.otpExpiry) {
+        throw new ApiError(400, "OTP has expired. Please request a new one.");
+    }
+
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    // Generate tokens to log them in automatically
+    const { accessToken, refreshToken } = await generateAccesstokenAndRefreshtoken(user._id);
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken -otp -otpExpiry");
+
+    const options = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none"
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", refreshToken, options)
+        .json(
+            new ApiResponse(
+                200,
+                {
+                    user: loggedInUser,
+                    accessToken,
+                    refreshToken
+                },
+                "Email verified and user logged in successfully"
+            )
+        );
+});
+
+const resendOtp = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+    await user.save({ validateBeforeSave: false });
+
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fcfcfc;">
+            <h2 style="color: #a855f7; text-align: center; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">VidTube Platform</h2>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">Hello,</p>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">Please verify your email using the verification code below:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #6b21a8; background-color: #faf5ff; padding: 12px 28px; border-radius: 8px; border: 1px solid #e9d5ff; display: inline-block;">
+                    ${otp}
+                </span>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; text-align: center;">This code is valid for 10 minutes. Please do not share this OTP with anyone.</p>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin-top: 30px;" />
+            <p style="font-size: 12px; color: #9ca3af; text-align: center;">VidTube Platform &copy; 2026</p>
+        </div>
+    `;
+    sendBrevoEmail(user.email, "VidTube - OTP Verification", htmlContent);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { email: user.email }, "Verification OTP resent successfully"));
+});
+
+const forgotPasswordRequest = asyncHandler(async (req, res) => {
+    const { email } = req.body;
+
+    if (!email) {
+        throw new ApiError(400, "Email is required");
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+        throw new ApiError(404, "User with this email does not exist");
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.otp = otp;
+    user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+    await user.save({ validateBeforeSave: false });
+
+    const htmlContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fcfcfc;">
+            <h2 style="color: #a855f7; text-align: center; border-bottom: 2px solid #a855f7; padding-bottom: 10px;">VidTube Platform</h2>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">Hello,</p>
+            <p style="font-size: 16px; color: #333333; line-height: 1.5;">You requested a password reset. Please use the verification code below to reset your password:</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <span style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #6b21a8; background-color: #faf5ff; padding: 12px 28px; border-radius: 8px; border: 1px solid #e9d5ff; display: inline-block;">
+                    ${otp}
+                </span>
+            </div>
+            <p style="font-size: 14px; color: #6b7280; text-align: center;">This code is valid for 10 minutes. If you did not request this, you can safely ignore this email.</p>
+            <hr style="border: 0; border-top: 1px solid #e5e7eb; margin-top: 30px;" />
+            <p style="font-size: 12px; color: #9ca3af; text-align: center;">VidTube Platform &copy; 2026</p>
+        </div>
+    `;
+    sendBrevoEmail(user.email, "VidTube - Password Reset OTP", htmlContent);
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, { email: user.email }, "Password reset OTP has been sent to your email."));
+});
+
+const forgotPasswordReset = asyncHandler(async (req, res) => {
+    const { email, otp, newPassword, confirmPassword } = req.body;
+
+    if (!email || !otp || !newPassword || !confirmPassword) {
+        throw new ApiError(400, "All fields (email, otp, newPassword, confirmPassword) are required");
+    }
+
+    if (newPassword !== confirmPassword) {
+        throw new ApiError(400, "Passwords do not match");
+    }
+
+    // Password validation: minimum 6 characters and at least one symbol (same as changepassword rules)
+    if (newPassword.length < 6) {
+        throw new ApiError(400, "New password must be at least 6 characters long")
+    }
+    const symbolRegex = /[!@#$%^&*(),.?":{}|<>_\W]/;
+    if (!symbolRegex.test(newPassword)) {
+        throw new ApiError(400, "New password must contain at least one symbol")
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (user.otp !== otp) {
+        throw new ApiError(400, "Invalid OTP code");
+    }
+
+    if (new Date() > user.otpExpiry) {
+        throw new ApiError(400, "OTP has expired. Please request a new one.");
+    }
+
+    user.password = newPassword;
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+
+    await user.save({ validateBeforeSave: false });
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, {}, "Password has been reset successfully. Please log in with your new password."));
+});
+
+export {registerUser,loginUser,logoutUser,refreshAccessToken,updateAccount,updateAvatar,updatecoverImage,getuserchhanelprofile,getwatchhistory,changepassword,getcurrentuser,verifyOtp,resendOtp,forgotPasswordRequest,forgotPasswordReset}

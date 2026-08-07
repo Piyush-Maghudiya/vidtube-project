@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {registerUser,loginUser,logoutUser,refreshAccessToken,updateAccount,updateAvatar,updatecoverImage,getuserchhanelprofile,getwatchhistory,changepassword,getcurrentuser } from "../controllers/user.controllers.js";
+import {registerUser,loginUser,logoutUser,refreshAccessToken,updateAccount,updateAvatar,updatecoverImage,getuserchhanelprofile,getwatchhistory,changepassword,getcurrentuser,verifyOtp,resendOtp,forgotPasswordRequest,forgotPasswordReset } from "../controllers/user.controllers.js";
 import { upload } from "../middleware/multer.middleware.js";
 
 import verifyjwt from "../middleware/auth.middleware.js";
@@ -16,6 +16,10 @@ const router = Router()
     }
  ]) ,registerUser)
  router.route("/login").post(loginUser)
+ router.route("/verify-otp").post(verifyOtp)
+ router.route("/resend-otp").post(resendOtp)
+ router.route("/forgot-password-request").post(forgotPasswordRequest)
+ router.route("/forgot-password-reset").post(forgotPasswordReset)
  router.route("/logout").post(verifyjwt,logoutUser)
  router.route("/refresh-token").post(refreshAccessToken)
  router.route("/change-password").post(verifyjwt,changepassword)
