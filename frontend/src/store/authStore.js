@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { getCurrentUser, loginUser, logoutUser, registerUser } from '../services/api'
+import { getCurrentUser, loginUser, logoutUser, registerUser, verifyOtp, resendOtp } from '../services/api'
 import { normalizeUser } from '../lib/utils'
 
 const useAuthStore = create((set, get) => ({
@@ -25,10 +25,35 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true, error: null })
     try {
       const { data } = await loginUser(credentials)
+      if (data.data?.otpRequired) {
+        set({ isLoading: false })
+        return { success: true, otpRequired: true, email: data.data.email }
+      }
       set({ user: normalizeUser(data.data.user), isAuthenticated: true, isLoading: false })
       return { success: true }
     } catch (err) {
       set({ error: err.message, isLoading: false })
+      return { success: false, message: err.message }
+    }
+  },
+
+  verifyLoginOtp: async (otpData) => {
+    set({ isLoading: true, error: null })
+    try {
+      const { data } = await verifyOtp(otpData)
+      set({ user: normalizeUser(data.data.user), isAuthenticated: true, isLoading: false })
+      return { success: true }
+    } catch (err) {
+      set({ error: err.message, isLoading: false })
+      return { success: false, message: err.message }
+    }
+  },
+
+  resendLoginOtp: async (email) => {
+    try {
+      await resendOtp({ email })
+      return { success: true }
+    } catch (err) {
       return { success: false, message: err.message }
     }
   },

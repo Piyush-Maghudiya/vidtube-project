@@ -11,8 +11,13 @@ import { toast } from 'sonner'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [otp, setOtp] = useState('')
+  const [otpRequired, setOtpRequired] = useState(false)
+  const [otpEmail, setOtpEmail] = useState('')
+  const [timer, setTimer] = useState(0)
+  const [canResend, setCanResend] = useState(true)
   const [showPassword, setShowPassword] = useState(false)
-  const { login, isLoading } = useAuthStore()
+  const { login, isLoading, verifyLoginOtp, resendLoginOtp } = useAuthStore()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -25,15 +30,62 @@ export default function Login() {
     }
   }, [navigate, location])
 
+  useEffect(() => {
+    let interval = null
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1)
+      }, 1000)
+    } else if (timer === 0 && !canResend) {
+      setCanResend(true)
+    }
+    return () => clearInterval(interval)
+  }, [timer, canResend])
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     const result = await login({ email, password })
+    if (result.success) {
+      if (result.otpRequired) {
+        setOtpRequired(true)
+        setOtpEmail(result.email)
+        setTimer(60)
+        setCanResend(false)
+        toast.success('Login credentials verified. Please enter the OTP sent to your email.')
+      } else {
+        localStorage.setItem('isRegistered', 'true')
+        toast.success('Welcome back!')
+        navigate('/')
+      }
+    } else {
+      toast.error(result.message || 'Login failed. Please register an account first.')
+    }
+  }
+
+  const handleOtpSubmit = async (e) => {
+    e.preventDefault()
+    if (!otp || otp.length !== 6) {
+      toast.error('Please enter a 6-digit OTP code')
+      return
+    }
+    const result = await verifyLoginOtp({ email: otpEmail, otp })
     if (result.success) {
       localStorage.setItem('isRegistered', 'true')
       toast.success('Welcome back!')
       navigate('/')
     } else {
-      toast.error(result.message || 'Login failed. Please register an account first.')
+      toast.error(result.message || 'Verification failed. Invalid or expired OTP.')
+    }
+  }
+
+  const handleResendOtp = async () => {
+    const result = await resendLoginOtp(otpEmail)
+    if (result.success) {
+      setTimer(60)
+      setCanResend(false)
+      toast.success('OTP has been resent to your email.')
+    } else {
+      toast.error(result.message || 'Failed to resend OTP.')
     }
   }
 
@@ -64,48 +116,93 @@ export default function Login() {
           </span>
         </Link>
 
-        <h1 className="mb-2 text-center text-xl font-bold text-white">Welcome back</h1>
+        <h1 className="mb-2 text-center text-xl font-bold text-white">
+          {otpRequired ? 'Enter OTP Verification' : 'Welcome back'}
+        </h1>
         <p className="mb-6 text-center text-sm text-text-secondary">
-          Sign in to continue watching
+          {otpRequired ? `We sent a 6-digit code to ${otpEmail}` : 'Sign in to continue watching'}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <div className="relative">
+        {otpRequired ? (
+          <form onSubmit={handleOtpSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp">Verification Code</Label>
               <Input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="otp"
+                type="text"
+                maxLength={6}
+                placeholder="000000"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                 required
-                className="pr-10"
+                className="text-center text-lg font-bold letter-spacing-4"
               />
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Verifying...' : 'Verify & Log in'}
+            </Button>
+            <div className="flex items-center justify-between text-xs mt-4">
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+                onClick={handleResendOtp}
+                disabled={!canResend}
+                className={`text-accent-purple hover:underline ${!canResend ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {canResend ? 'Resend Code' : `Resend in ${timer}s`}
+              </button>
+              <button
+                type="button"
+                onClick={() => setOtpRequired(false)}
+                className="text-text-secondary hover:underline"
+              >
+                Back to Login
               </button>
             </div>
-          </div>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in...' : 'Log in'}
-          </Button>
-        </form>
+          </form>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link to="/forgot-password" className="text-xs text-accent-purple hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary hover:text-white"
+                >
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                </button>
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing in...' : 'Log in'}
+            </Button>
+          </form>
+        )}
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">

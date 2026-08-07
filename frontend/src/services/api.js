@@ -30,6 +30,11 @@ export const logoutUser = () => api.post('/api/v1/users/logout')
 
 export const getCurrentUser = () => api.get('/api/v1/users/current-user')
 
+export const verifyOtp = (data) => api.post('/api/v1/users/verify-otp', data)
+export const resendOtp = (data) => api.post('/api/v1/users/resend-otp', data)
+export const forgotPasswordRequest = (data) => api.post('/api/v1/users/forgot-password-request', data)
+export const forgotPasswordReset = (data) => api.post('/api/v1/users/forgot-password-reset', data)
+
 // Videos  (backend mounts at /api/v1/video — singular)
 export const getVideos = (params) => api.get('/api/v1/video/', { params })
 
