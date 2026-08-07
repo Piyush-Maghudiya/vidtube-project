@@ -250,7 +250,7 @@ export default function AdminDashboard() {
                       <tr key={u._id} className="hover:bg-accent-purple/5 transition-colors">
                         <td className="px-6 py-4 flex items-center gap-3">
                           <img
-                            src={u.avatar}
+                            src={typeof u.avatar === 'object' ? u.avatar?.url : u.avatar}
                             alt={u.fullname}
                             className="h-9 w-9 rounded-full object-cover border border-border"
                           />
